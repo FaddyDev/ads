@@ -276,7 +276,8 @@ $conn = null;
        
           <div class="col-md-12 col-lg-8 mb-5">  
 
-            <form class="p-5 bg-white" id="grpaddform">
+            <form class="p-5 bg-white" id="grpaddform" method="POST" action="scripts/grpadd.php" enctype="multipart/form-data">
+            <!--  method="POST" action="scripts/grpadd.php"  -->
             <fieldset><legend>Add Group</legend>
 
               <div class="row">
@@ -304,20 +305,37 @@ $conn = null;
                   <label class="font-weight-bold" for="grpname">Group Name</label>
                   <input type="text" id="grpname" name="grpname"  class="input form-control" placeholder="Group Name" required>
                 </div>
-              </div>
+              </div> 
+
+            <div class="row p-5">
+                <div class="col-md-12 mb-3 mb-md-0">
+                  <button class="btn btn-info" id="new-individual-btn">Enter details by typing</button> |
+                  <button class="btn" id="upload-btn">Upload an excel file</button>
+                </div>
+              </div> 
               
               <div class="row form-group" id="new-individual">
                 <div class="col-md-12 mb-3 mb-md-0">
                   <label class="font-weight-bold" for="group">Type name then hyphen (-) then phone numbers separated by commas (,)</label>
                   <br><span><em>Follow the given format strictly;</em></span>
                   <!-- <br><span><em>Only numbers(0-9), comma(,) and plus(+) are allowed with no commas at the begging and end.</em></span> -->
-                  <textarea name="indivi-new" id="indivi-new" cols="30" rows="3" class="form-control" XonKeyPress="return numbersCommaonly(event)" placeholder="ADS Nyeri - 0700000000,ADS Kenya - +2547000000,..." required></textarea>
+                  <textarea name="indivi-new" id="indivi-new" cols="30" rows="3" class="form-control" XonKeyPress="return numbersCommaonly(event)" placeholder="ADS Nyeri - 0700000000,ADS Kenya - +2547000000,..."></textarea>
+                </div>
+              </div>
+              
+              <div class="row form-group" id="upload-div" style="display: none;">
+                <div class="col-md-12 mb-3 mb-md-0">
+                  <label class="font-weight-bold" for="group">Upload an excel file with the details</label>
+                  <br><span><em>(The file MUST have two columns: A with names and B with phone numbers. Actual records to start at line 2. Line 1 is assumed to contain the title.
+                    All numbers should start with 7 (because when you type 07... 0 is automatically hidden))</em></span>
+                  <!-- <br><span><em>Only numbers(0-9), comma(,) and plus(+) are allowed with no commas at the begging and end.</em></span> -->
+                  <input type="file" name="file_data" id="membersFile" class="form-control" required/>
                 </div>
               </div>
 
               <div class="row form-group">
                 <div class="col-md-12">
-                  <input type="submit" value="Add Group" class="btn btn-primary">
+                  <input type="submit" id="AddGroup" value="Add Group" class="btn btn-primary">
                 </div>
               </div>
 
@@ -493,13 +511,36 @@ $(document).ready(function(){
 });
 */
 
-$('#grpaddform').on("submit", function(e){ //or $(�form�).submit(function(e){
+var isTyped = 1;
+
+$('#new-individual-btn').click(function(e){
+  e.preventDefault();
+  $('#new-individual').show('slow'); 
+  $('#upload-btn').removeClass('btn-info'); 
+  $(this).addClass('btn-info'); 
+  isTyped = 1;
+  $('#upload-div').hide('slow');
+});
+
+$('#upload-btn').click(function(e){
+  e.preventDefault();
+  $('#upload-div').show('slow'); 
+  $('#new-individual-btn').removeClass('btn-info'); 
+  $(this).addClass('btn-info');
+  isTyped = 0;
+  $('#new-individual').hide('slow');
+});
+
+//$('#grpaddform').on("submit", function(e){ //or $(�form�).submit(function(e){
+
+$('#AddGroup').on("click", function(e){
 e.preventDefault();
 $('#response').empty();
 
 var category = $('#category :selected').val();
 var grpname = $('#grpname').val();
-var individuals_new = $('#indivi-new').val().trim();//get rid of white spaces
+var individuals_new = '';//$('#indivi-new').val().trim();//get rid of white spaces
+individuals_new = $('#indivi-new').val().trim();//get rid of white spaces
 
 //show and clear response field
 $('#response').show().html("");
@@ -508,11 +549,36 @@ $('#response').html('<p class="alert alert-warning">  Fill in all fields! </p>')
 return false;
 }
 
+if(isTyped==1 && individuals_new==''){
+$('#response').html('<p class="alert alert-warning"> The contacts list cannot be empty. Enter some names and numbers.</p>');
+return false;
+}
+
+var file_data = $("#membersFile").prop("files")[0];
+
+if(isTyped==0 && file_data==null){
+$('#response').html('<p class="alert alert-warning"> No file uploaded. Check!</p>');
+return false;
+}
+
+
+$('#response').html('<p class="alert alert-info"> Processing request, please wait...</p>');
+
+var formData = new FormData();
+formData.append("category", category);
+formData.append("grpname", grpname);
+formData.append("indivs", individuals_new);
+formData.append("isTyped", isTyped);
+formData.append("file_data", file_data);
+
 $.ajax({
 url: 'scripts/grpadd.php',
 method: 'post',
 dataType    : 'json',
-data: { category:category, grpname:grpname, indivs:individuals_new},
+processData: false, 
+contentType: false,
+//data: { category:category, grpname:grpname, indivs:individuals_new, file_data:file_data, isTyped:isTyped},
+data: formData,
 success: function(response){
 if(response['status'] == 'success'){
 
@@ -545,7 +611,6 @@ console.log(data);
 });
 
 });
-
 
 
 //add members to group

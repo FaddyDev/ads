@@ -26,7 +26,8 @@ if($stmtresponse)
       {
         while($row = $stmt -> fetch())
         {
-           $phone = '+254'.$row['phone'];
+          $phone = $row['phone'];
+          if($phone[0] !== '+'){$phone = '+254'.$phone;}
            $recipient = $row['id'];
            $grp=0;
            //Send message

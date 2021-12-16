@@ -168,7 +168,7 @@ function sendMessage($rcpt,$msg) {
     $themessage    = $msg;
 
     // Set your shortCode or senderId
-    $from       = "ADSMTKENYA";
+    $from       = "YOURSENDERID";
   $rt = true;
     try {
         // Thats it, hit send and we'll take care of the rest

@@ -153,8 +153,8 @@ echo json_encode($resp);
 
 function sendMessage($rcpt,$msg) {
   // Set your app credentials
-  $username   = "ADSMTKENYA";
-  $apikey     = "2e08beabf9ad4843a914378c67d83c2bfd852f0a22fca5605cadab3ab3db091e";
+  $username   = "YOURUSERNAME";
+  $apikey     = "YOURAPIKEY";
   
   // Initialize the SDK
   $AT         = new AfricasTalking($username, $apikey);
